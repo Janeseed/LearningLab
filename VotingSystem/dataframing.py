@@ -16,17 +16,20 @@ import xlrd
 
 def ErrorCheck(df_vote):
     ## checking the mistaken of inputs
-    # Do the students put their 'student ID' correctly?
-    #                           'Name'       correctly?
     # Does any student put the answer twice at 1st and 2nd voting?
     df_sample = df_vote.groupby(u"Student ID No. (학번)").groups
     #print(df_sample)
     for sample in df_sample:
+        # get indexes of same student id
         li_index = df_sample.get(sample)
+        #print(li_index)
+        # Find if the number of indexes are more than 3.
+        # Remove the double vote data.
         if len(li_index) >= 3:
             li_1st = []
             li_2nd = []
             for i in range(len(li_index)):
+                # get the value of first and seconde vote.
                 row = df_vote.ix[li_index[i]]
                 first_vote = row["Let's vote."]
                 second_vote = row["Let's vote again."]
@@ -34,19 +37,29 @@ def ErrorCheck(df_vote):
                     li_1st.append({li_index[i]: first_vote})
                 if not np.isnan(second_vote):
                     li_2nd.append({li_index[i] : second_vote})
+            print(li_1st, li_2nd)
+            # the print results are like below
+            # example1. ([{13: 3.0}], [{128: 3.0}, {129: 3.0}])
+            # exampel2. ([{5: 4.0}, {11: 4.0}], [{5: 4.0}, {92: 4.0}])
             if len(li_1st) > 1:
                 if li_1st[0].values() == li_1st[1].values():
                     random_index = random.choice(li_1st).keys()[0]
-                    if df_vote.ix(random_index):
+                    print(random_index)
+                    if random_index in df_vote.index:
                         df_vote = df_vote.drop(random_index)
-                    print(random_index ,df_vote)
+                        print(random_index, "is deleted")
+
             if len(li_2nd) > 1:
                 if li_2nd[0].values() == li_2nd[1].values():
                     random_index = random.choice(li_2nd).keys()[0]
-                    if df_vote.ix(random_index):
+                    print(random_index)
+                    if random_index in df_vote.index:
                         df_vote = df_vote.drop(random_index)
-                    print(random_index, df_vote)
-
+                        print(random_index, "is deleted")
+                    else:
+                        pass
+    # Do the students put their 'student ID' correctly?
+    #                           'Name'       correctly?
     return df_vote
 if __name__ =='__main__':
 
@@ -75,12 +88,12 @@ if __name__ =='__main__':
     else:
         print("You have put the path of input excel file and the number of sheets it has, for example: \n python dataframing.py /home/input.xlsx 4 ./voting_data.xlsx")
         #return
-
+    #Check the errors and remove it before append to student roster.
     df_vote = ErrorCheck(df_vote)
+
     ##Sample one of the line and matching the students in df_vote to df_list
     first_vote = pd.DataFrame()
     second_vote = pd.DataFrame()
-
     for i in range(df_vote.shape[0]):
         sample = df_vote.sample(n=1)
         student_num = sample[u"Student ID No. (학번)"].values[0]
@@ -111,6 +124,8 @@ if __name__ =='__main__':
         if sample.columns.values[-1] == u"Let's vote again.":
             temp2 = pd.DataFrame(sample[u"Let's vote again."].values[0], index = idx, columns=['2nd_QLA_15'])
             second_vote = second_vote.append(temp2)
+            if sample.columns.values[-2] == u"Let's vote.":
+                temp2_1 = pd.Dataframe(sample[u"Let's vote."].values[0], index = idx, columns= ['1st_QLA_15'])
         #print(temp1)
         df_vote = df_vote.drop(sample.index)
     #print(first_vote)
