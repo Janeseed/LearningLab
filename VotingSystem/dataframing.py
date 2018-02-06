@@ -13,7 +13,10 @@ import sys
 import numpy as np
 import pandas as pd
 from functools import reduce
-
+'''
+"You have put the path of input excel file and the number of sheets it has, for example:
+python dataframing.py /home/input.xlsx /Documents/learning_lab/votingdata"
+'''
 
 def ErrorCheck(df_vote):
     ## checking the mistaken of inputs
